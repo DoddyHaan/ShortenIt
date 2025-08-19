@@ -263,7 +263,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Support
 
-For support, email support@shortenit.com or create an issue in the repository.
+For support, email doddyhaan@gmail.com or create an issue in the repository.
 
 ---
 
