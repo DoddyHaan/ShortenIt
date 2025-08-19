@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block title %}My URLs - ShortenIt{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>My URLs</h1>
+    <p>Manage all your shortened links</p>
+  </div>
+
+  {% if user_urls %}
+    <div class="urls-header">
+      <h2>{{ user_urls.count }} URL{{ user_urls.count|pluralize }}</h2>
+      <a href="{% url 'index' %}" class="create-new-btn">Create New URL</a>
+    </div>
+
+    <div class="url-list">
+      {% for url in user_urls %}
+        {% comment %}
+          Build the full short link once for share buttons and copy
+        {% endcomment %}
+        {% with full_short=request.scheme|add:"://"|add:request.get_host|add:"/"|add:url.short_url|add:"/" %}
+        <div class="url-item" data-id="{{ url.id }}">
+          
+          <!-- 1) URL Info & Inline Slug Edit -->
+          <div class="url-info">
+            <div>
+              <strong>
+                <a href="{{ full_short }}">{{ full_short }}</a>
+              </strong>
+            </div>
+            <div class="slug-edit">
+              <span class="slug-text">{{ url.short_url }}</span>
+              <button class="edit-slug-btn" title="Edit Slug">✏️</button>
+
+              <form class="inline-slug-form" style="display:none;">
+                <input
+                  type="text"
+                  name="short_url"
+                  value="{{ url.short_url }}"
+                  class="inline-slug-input"
+                />
+                <button type="button" class="save-slug-btn">💾</button>
+                <button type="button" class="cancel-slug-btn">❌</button>
+                <span class="slug-success" style="display:none; color:green; margin-left:8px;">
+                  Saved!
+                </span>
+              </form>
+            </div>
+            
+            <div class="url-original">{{ url.original_url }}</div>
+            <div class="url-meta">
+              <span>{{ url.click_count }} clicks</span> |
+              <span>Created {{ url.creation_date|date:"M d, Y" }}</span>
+            </div>
+          </div>
+
+          <!-- 2) QR Code -->
+          <div class="url-qr">
+            {% if url.qr_code_image %}
+              <img src="{{ url.qr_code_image.url }}"
+                   alt="QR for {{ full_short }}"
+                   width="80" height="80" />
+            {% else %}
+              <p class="qr-missing">No QR</p>
+            {% endif %}
+          </div>
+
+          <!-- 3) Actions -->
+          <div class="url-actions">
+            <button
+              class="copy-btn-small"
+              onclick="copyToClipboard(event, '{{ full_short }}')"
+            >
+              📋
+            </button>
+
+            <a
+            href="{% url 'customize_url' url.id %}"
+            class="small-btn meta-item"
+            title="Configure Expiry & Category"
+          >
+            <i class="fas fa-clock"></i>
+            Expiry / Category
+          </a>
+
+            <!-- Delete -->
+            <button
+            class="delete-btn"
+            data-delete-url="{% url 'delete_url' url.id %}"
+            title="Delete URL"
+          >
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        
+
+            <!-- Social Share Buttons -->
+            <div class="share-buttons">
+              <a
+                href="https://wa.me/?text={{ full_short|urlencode }}"
+                target="_blank"
+                title="Share on WhatsApp"
+              >
+                <i class="fab fa-whatsapp"></i>
+              </a>
+              <a
+                href="https://twitter.com/intent/tweet?url={{ full_short|urlencode }}"
+                target="_blank"
+                title="Tweet it"
+              >
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a
+                href="mailto:?subject=Check%20out%20my%20link&body={{ full_short|urlencode }}"
+                title="Email link"
+              >
+                <i class="fas fa-envelope"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔗</div>
+      <h3>No URLs yet</h3>
+      <p>Start by creating your first shortened URL!</p>
+      <a href="{% url 'index' %}" class="create-btn">Create URL</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 1) CSRF helper from Django docs
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(c => {
+        let [k, v] = c.trim().split('=');
+        if (k === name) cookieValue = decodeURIComponent(v);
+      });
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // 2) Centralized POST helper
+  function postJSON(url, data) {
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+  }
+
+   // 3) Clipboard helper for copy buttons
+   function copyToClipboard(event, text) {
+  event.preventDefault();
+  const btn  = event.currentTarget;
+  const orig = btn.textContent;
+
+  // Primary: modern async Clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => flashCopySuccess(btn, orig))
+      .catch(err => {
+        console.error('Navigator.clipboard failed:', err);
+        fallbackCopy(text, btn, orig);
+      });
+  } else {
+    // Fallback: legacy execCommand
+    fallbackCopy(text, btn, orig);
+  }
+}
+
+function fallbackCopy(text, btn, orig) {
+  // create offscreen textarea
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+
+  try {
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if (ok) {
+      flashCopySuccess(btn, orig);
+    } else {
+      throw new Error('execCommand returned false');
+    }
+  } catch (err) {
+    document.body.removeChild(ta);
+    console.error('Fallback copy failed:', err);
+    alert('Failed to copy link. Please copy it manually.');
+  }
+}
+
+function flashCopySuccess(btn, orig) {
+  btn.textContent           = 'URL Copied';
+  btn.style.backgroundColor = '#28a745';
+  btn.style.color           = '#fff';
+
+  setTimeout(() => {
+    btn.textContent           = orig;
+    btn.style.backgroundColor = '';
+    btn.style.color           = '';
+  }, 2000);
+}
+  // 4) DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    // — EDIT button: show the inline form
+    document.querySelectorAll('.edit-slug-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item       = btn.closest('.url-item');
+        const formEl     = item.querySelector('.inline-slug-form');
+        const slugTextEl = item.querySelector('.slug-text');
+
+        slugTextEl.style.display      = 'none';
+        btn.style.display             = 'none';
+        formEl.style.display          = 'inline-block';
+        formEl.querySelector('.inline-slug-input').focus();
+      });
+    });
+
+    // — CANCEL button: hide the form, restore view
+    document.querySelectorAll('.cancel-slug-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item       = btn.closest('.url-item');
+        const formEl     = item.querySelector('.inline-slug-form');
+        const slugTextEl = item.querySelector('.slug-text');
+        const editBtn    = item.querySelector('.edit-slug-btn');
+
+        formEl.style.display      = 'none';
+        slugTextEl.style.display  = '';
+        editBtn.style.display     = '';
+      });
+    });
+
+    // — SAVE button: AJAX update + flash “Saved!” but keep form open
+    document.querySelectorAll('.save-slug-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const item       = btn.closest('.url-item');
+        const input      = item.querySelector('.inline-slug-input');
+        const formEl     = item.querySelector('.inline-slug-form');
+        const slugTextEl = item.querySelector('.slug-text');
+        const successEl  = item.querySelector('.slug-success');
+        const newSlug    = input.value.trim();
+        const pk         = item.dataset.id;
+
+        if (!newSlug) {
+          return alert('Slug cannot be blank.');
+        }
+
+        try {
+          const res  = await postJSON(`/update-slug/${pk}/`, { short_url: newSlug });
+          const data = await res.json();
+          if (!res.ok) throw data;
+
+          // 1) Update both the hidden slug-text (for copy/share) and the input box
+          slugTextEl.textContent = data.short_url;
+          input.value            = data.short_url;
+
+          // 2) Flash success message
+          successEl.style.display = 'inline';
+          setTimeout(() => {
+            successEl.style.display = 'none';
+          }, 2000);
+
+          // Note: we do NOT hide the form or restore the view mode here
+
+        } catch (err) {
+          alert(err.error || 'Failed to update slug.');
+        }
+      });
+    });
+
+    // — DELETE button: AJAX delete + remove from DOM
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Really delete this link?')) return;
+        const container = btn.closest('.url-item');
+        const url       = btn.dataset.deleteUrl;
+
+        try {
+          const res  = await postJSON(url, {});
+          const data = await res.json();
+          if (!res.ok) throw data;
+          container.remove();
+        } catch (err) {
+          alert(err.error || 'Failed to delete URL.');
+        }
+      });
+    });
+  });
+
+</script>
+
+{% endblock %}

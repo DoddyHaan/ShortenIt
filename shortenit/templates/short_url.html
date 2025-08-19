@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}ShortenIt - Your Shortened URL{% endblock %}
+
+{% block meta_description %}Your URL has been successfully shortened. Copy and share your new short link instantly.{% endblock %}
+
+{% block content %}
+<div class="result-container">
+    <div class="success-icon">✅</div>
+    <h1>URL Shortened Successfully!</h1>
+    <p>Your shortened URL is ready to use:</p>
+    
+    <div class="short-url" id="shortUrl">
+        {{ request.scheme }}://{{ request.get_host }}/{{ url_obj.short_url }}/
+    </div>
+    
+    <p class="original-url">
+        <strong>Original URL:</strong><br>
+        {{ url_obj.original_url }}
+    </p>
+    
+    <button id="copyBtn" class="copy-btn">
+      📋 Copy Shortened URL
+    </button>
+      
+    <a href="{% url 'index' %}" class="back-btn">
+        🔗 Shorten Another URL
+    </a>
+    {% if user.is_authenticated %}
+    <a
+      href="{% url 'customize_url' url_obj.id %}"
+      class="btn customize-btn"
+    >
+      ✏️ Customize This Link
+    </a>
+  {% else %}
+    <a
+      href="{% url 'login' %}?next={% url 'customize_url' url_obj.id %}"
+      class="btn customize-btn"
+    >
+      🔒 Sign in to Customize
+    </a>
+  {% endif %}
+
+</div>
+
+{% endblock %}

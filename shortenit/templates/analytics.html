@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Your URL Analytics</h1>
+
+<!-- Search Bar -->
+<form method="get" class="search-form">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search short or original URL..."
+    value="{{ search_query }}"
+  />
+  <button type="submit">Search</button>
+</form>
+
+<!-- Table of URLs -->
+<table class="analytics-table">
+  <thead>
+    <tr>
+      <th>Short URL</th>
+      <th>Created</th>
+      <th>Category</th>
+      <th>Status</th>
+      <th>QR Code</th>
+      <th>Original URL</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for url in urls %}
+    <tr>
+      <td><a href="{% url 'short_url' url.short_url %}" target="_blank">{{ url.short_url }}</a></td>
+      <td>{{ url.creation_date|date:"Y-m-d H:i" }}</td>
+      <td>{{ url.get_category_display }}</td>
+      <td>
+        {% if url.is_expired %}
+          Expired
+        {% else %}
+          Active
+        {% endif %}
+      </td>
+      <td>
+        {% if url.qr_code_image %}
+          <img src="{{ url.qr_code_image.url }}" alt="QR" width="50" />
+        {% else %}
+          —
+        {% endif %}
+      </td>
+      <td>
+        {% if url.is_expired %}
+          <a
+            href="{% url 'expired_url' url.short_url %}"
+            target="_blank"
+          >
+            Visit
+          </a>
+        {% else %}
+          <a
+            href="{{ url.original_url }}"
+            target="_blank"
+          >
+            Visit
+          </a>
+        {% endif %}
+      </td>
+      </tr>
+    {% empty %}
+    <tr><td colspan="6">No URLs found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Chart Section -->
+<h2>URLs by Category</h2>
+<canvas id="categoryChart" width="600" height="300"></canvas>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // add escapejs so quotes inside the JSON don’t break your string
+      const labels = JSON.parse('{{ chart_labels|escapejs }}');
+      const data   = JSON.parse('{{ chart_data  |escapejs }}');
+    
+      const ctx = document
+        .getElementById("categoryChart")
+        .getContext("2d");
+    
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Count",
+            data,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor:     "rgba(54, 162, 235, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    });
+</script>
+        
+{% endblock %}

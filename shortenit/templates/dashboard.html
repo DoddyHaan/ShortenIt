@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - ShortenIt{% endblock %}
+
+{% block meta_description %}Manage your shortened URLs and view analytics on your ShortenIt dashboard.{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p>Welcome back, {{ user.username }}!</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🔗</div>
+            <div class="stat-content">
+                <h3>Total URLs</h3>
+                <p class="stat-number">{{ total_urls }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👆</div>
+            <div class="stat-content">
+                <h3>Total Clicks</h3>
+                <p class="stat-number">{{ total_clicks }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <h3>Avg. Clicks</h3>
+                <p class="stat-number">{% if total_urls > 0 %}{{ total_clicks|floatformat:1 }}{% else %}0{% endif %}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="recent-urls">
+        <h2>Recent URLs</h2>
+        {% if user_urls %}
+            <div class="url-list">
+                {% for url in user_urls|slice:":5" %}
+                    <div class="url-item">
+                        <div class="url-info">
+                            <div class="url-short">
+                                <strong>{{ request.scheme }}://{{ request.get_host }}/{{ url.short_url }}/</strong>
+                            </div>
+                            <div class="url-original">{{ url.original_url }}</div>
+                            <div class="url-meta">
+                                <span class="url-clicks">{{ url.click_count }} clicks</span>
+                                <span class="url-date">{{ url.creation_date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="url-actions">
+                            <button class="copy-btn-small" onclick="copyToClipboard(event, '{{ request.scheme }}://{{ request.get_host }}/{{ url.short_url }}/')">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if user_urls.count > 5 %}
+                <div class="view-all">
+                    <a href="{% url 'my_urls' %}" class="view-all-btn">View All URLs</a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🔗</div>
+                <h3>No URLs yet</h3>
+                <p>Start by creating your first shortened URL!</p>
+                <a href="{% url 'index' %}" class="create-btn">Create URL</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(event, text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        btn.style.background = '#28a745';
+        
+        setTimeout(function() {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy URL. Please copy it manually.');
+    });
+}
+</script>
+{% endblock %}

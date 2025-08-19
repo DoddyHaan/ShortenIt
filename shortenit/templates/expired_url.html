@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Link Expired{% endblock %}
+
+{% block content %}
+<div class="expired-page">
+  <div class="expired-container">
+    <h1>Link Expired</h1>
+    <p>
+      The short link <strong>{{ short_url }}</strong> is no longer active.
+    </p>
+    <a href="{% url 'dashboard' %}" class="btn">
+      Return to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

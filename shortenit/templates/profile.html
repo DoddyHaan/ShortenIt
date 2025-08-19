@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - ShortenIt{% endblock %}
+
+{% block meta_description %}Manage your ShortenIt account settings and profile information.{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Profile</h1>
+        <p>Manage your account settings</p>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ user.username|first|upper }}
+                </div>
+                <div class="profile-info">
+                    <h2>{{ user.username }}</h2>
+                    <p>Member since {{ user.date_joined|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-item">
+                    <label>Username:</label>
+                    <span>{{ user.username }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Email:</label>
+                    <span>{{ user.email|default:"Not provided" }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Date Joined:</label>
+                    <span>{{ user.date_joined|date:"F d, Y" }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Last Login:</label>
+                    <span>{{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <a href="{% url 'dashboard' %}" class="profile-btn">Back to Dashboard</a>
+                <a href="{% url 'my_urls' %}" class="profile-btn">View My URLs</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

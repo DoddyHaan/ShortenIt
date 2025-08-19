@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Customize Your Link{% endblock %}
+
+{% block content %}
+  <h1>Customize Link: {{ url_obj.short_url }}</h1>
+
+  <form id="customize-form" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button
+      type="button"
+      id="qr-preview-btn"
+      class="btn"
+    >
+      Preview QR
+    </button>
+    <div id="qr-preview-container" style="margin-top:10px;"></div>
+
+    <p
+      id="live-url-preview"
+      style="font-style: italic; margin-top:5px;"
+    ></p>
+
+    {% if url_obj.qr_code_image %}
+      <p>Current QR Code:</p>
+      <img
+        src="{{ url_obj.qr_code_image.url }}"
+        alt="QR for {{ url_obj.short_url }}"
+        width="200"
+      />
+    {% endif %}
+
+    <button type="submit" class="btn">Save Changes</button>
+    <a href="{% url 'dashboard' %}" class="btn">Cancel</a>
+  </form>
+  {% endblock %}
+  
+  {% block extra_js %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const previewBtn   = document.getElementById("qr-preview-btn");
+    const slugInput    = document.getElementById("id_short_url");
+    const previewDiv   = document.getElementById("qr-preview-container");
+    const livePreview  = document.getElementById("live-url-preview");
+  
+    previewBtn.addEventListener("click", () => {
+      const slug = slugInput.value.trim();
+      if (!slug) {
+        previewDiv.textContent = "Please enter a slug first.";
+        return;
+      }
+      const formData = new FormData();
+      formData.append("slug", slug);
+      formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+  
+      fetch("{% url 'preview_qr' %}", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          previewDiv.textContent = data.error;
+        } else {
+          previewDiv.innerHTML = `
+            <p>Short link:
+              <a href="${data.short_link}" target="_blank">${data.short_link}</a>
+            </p>
+            <img src="${data.qr_data_uri}" alt="QR preview" />
+          `;
+        }
+      })
+      .catch(() => {
+        previewDiv.textContent = "Unable to fetch QR preview.";
+      });
+    });
+  
+    // Live URL preview as you type
+    slugInput.addEventListener("input", () => {
+      const slug = slugInput.value.trim();
+      livePreview.textContent = slug
+        ? `Preview: ${window.location.origin}/${slug}/`
+        : "";
+    });
+  });
+  </script>
+  {% endblock %}

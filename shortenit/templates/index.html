@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}ShortenIt - URL Shortener{% endblock %}
+
+{% block meta_description %}Transform long URLs into short, shareable links instantly. Fast, reliable, and secure URL shortening service.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="logo">🔗 ShortenIt</div>
+        <h1 class="hero-title">Shorten Your URLs Instantly</h1>
+        <p class="hero-subtitle">Transform long, unwieldy links into short, shareable URLs that are easy to remember and track.</p>
+    </div>
+
+    <div class="url-form-section">
+        <form method="POST" class="url-form" id="urlForm">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="original_url" class="form-label">Enter your long URL</label>
+            <div class="input-group">
+              <input
+                type="url"
+                id="original_url"
+                name="original_url"
+                class="url-input"
+                placeholder="https://example.com/very-long-url"
+                required
+              />
+              <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="btn-text">Shorten URL</span>
+                <span class="btn-loading" style="display: none;">⏳ Processing...</span>
+              </button>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+          </div>
+        </form>
+      </div>
+
+    <!-- Statistics Section -->
+    <div class="stats-section">
+        <h2 class="section-title">ShortenIt by the Numbers</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="totalUrls">0</div>
+                <div class="stat-label">URLs Shortened</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalClicks">0</div>
+                <div class="stat-label">Total Clicks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="activeUsers">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of users who trust ShortenIt for their URL shortening needs.</p>
+        {% if not user.is_authenticated %}
+            <div class="cta-buttons">
+                <a href="{% url 'register' %}" class="cta-btn primary">Create Free Account</a>
+                <a href="{% url 'login' %}" class="cta-btn secondary">Sign In</a>
+            </div>
+        {% else %}
+            <div class="cta-buttons">
+                <a href="{% url 'dashboard' %}" class="cta-btn primary">Go to Dashboard</a>
+                <a href="{% url 'my_urls' %}" class="cta-btn secondary">View My URLs</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update statistics on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set real statistics from backend
+    document.getElementById('totalUrls').textContent = '{{ total_urls|default:"0" }}';
+    document.getElementById('totalClicks').textContent = '{{ total_clicks|default:"0" }}';
+    document.getElementById('activeUsers').textContent = '{{ active_users|default:"0" }}';
+});
+</script>
+{% endblock %}
