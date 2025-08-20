@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.db import IntegrityError # for handling unique constraint errors    
 from django.contrib import messages
 from .models import URL
-from .forms import CustomizeURLForm
+from .forms import CustomizeURLForm, URLForm
 from .utils import make_qr_code
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -23,28 +23,29 @@ import json
 
 def index_view(request):
     if request.method == 'POST':
-        original_url = request.POST['original_url']
-        short_url = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        
-        # Associate URL with user if logged in
-        url_obj = URL.objects.create(
-            original_url=original_url, 
-            short_url=short_url,
-            user=request.user if request.user.is_authenticated else None
-        )
-        return render(request, 'short_url.html', {'url_obj': url_obj})
-    
-    # Get statistics for the homepage
-    total_urls = URL.objects.count()
-    total_clicks = sum(url.click_count for url in URL.objects.all())
+        form = URLForm(request.POST)
+        if form.is_valid():
+            url_obj = form.save(commit=False)
+            url_obj.short_url = ''.join(
+                random.choices(string.ascii_letters + string.digits, k=6)
+            )
+            url_obj.user = request.user if request.user.is_authenticated else None
+            url_obj.save()
+            return render(request, 'short_url.html', {'url_obj': url_obj})
+        # if invalid, falls through to render with form errors
+    else:
+        form = URLForm()
+
+    total_urls   = URL.objects.count()
+    total_clicks = sum(u.click_count for u in URL.objects.all())
     active_users = URL.objects.filter(user__isnull=False).values('user').distinct().count()
-    
-    context = {
+
+    return render(request, 'index.html', {
+        'form': form,
         'total_urls': total_urls,
         'total_clicks': total_clicks,
         'active_users': active_users,
-    }
-    return render(request, 'index.html', context)
+    })
 
 def redirect_to_original(request, short_url):
     url_obj = get_object_or_404(URL, short_url=short_url)

@@ -132,7 +132,109 @@ body {
     cursor: not-allowed;
     transform: none;
 }
+/* ──────────────────────────────────────────────────────────────────────────
+   Index Page URL Shortener Form
+   ────────────────────────────────────────────────────────────────────────── */
+.url-form-section {
+  /* Center this section and add breathing room */
+  padding: 2rem 1rem;
+}
 
+.url-form-section #urlForm {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.url-form-section #urlForm .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.url-form-section #urlForm label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.url-form-section #urlForm .form-control {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #e1e5e9;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+}
+
+.url-form-section #urlForm .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.url-form-section #urlForm .form-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.url-form-section #urlForm .invalid-feedback,
+.url-form-section #urlForm .form-control.is-invalid {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.url-form-section #urlForm .is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+}
+
+/* Submit Button */
+.url-form-section #submitBtn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.url-form-section #submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.url-form-section #submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.url-form-section #submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Loading Spinner Within Button */
+.url-form-section #submitBtn .btn-loading {
+  display: none;
+}
+
+.url-form-section #submitBtn.loading .btn-text {
+  display: none;
+}
+
+.url-form-section #submitBtn.loading .btn-loading {
+  display: inline-block;
+}
 /* url qr code */
 
 .url-list {

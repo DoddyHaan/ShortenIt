@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
-{% block title %}ShortenIt - URL Shortener{% endblock %}
+{% block title %}Home – ShortenIt{% endblock %}
 
-{% block meta_description %}Transform long URLs into short, shareable links instantly. Fast, reliable, and secure URL shortening service.{% endblock %}
+{% block meta_description %}Create a custom short URL with ShortenIt.{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -13,30 +13,26 @@
         <p class="hero-subtitle">Transform long, unwieldy links into short, shareable URLs that are easy to remember and track.</p>
     </div>
 
-    <div class="url-form-section">
-        <form method="POST" class="url-form" id="urlForm">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="original_url" class="form-label">Enter your long URL</label>
-            <div class="input-group">
-              <input
-                type="url"
-                id="original_url"
-                name="original_url"
-                class="url-input"
-                placeholder="https://example.com/very-long-url"
-                required
-              />
-              <button type="submit" class="submit-btn" id="submitBtn">
-                <span class="btn-text">Shorten URL</span>
-                <span class="btn-loading" style="display: none;">⏳ Processing...</span>
-              </button>
-            </div>
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
-          </div>
-        </form>
-      </div>
+<div class="url-form-section">
+  <form id="urlForm" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="form-group">
+      {{ form.original_url.label_tag }}
+      {{ form.original_url }}
+      <small class="form-text text-muted">
+        {{ form.original_url.help_text }}
+      </small>
+      {{ form.original_url.errors }}
+    </div>
+
+    <button id="submitBtn" class="btn btn-primary" type="submit">
+      <span class="btn-text">Shorten URL</span>
+      <span class="btn-loading" style="display: none;">⏳</span>
+    </button>
+  </form>
+</div>
 
     <!-- Statistics Section -->
     <div class="stats-section">
