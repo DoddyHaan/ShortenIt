@@ -267,4 +267,11 @@ For support, email doddyhaan@gmail.com or create an issue in the repository.
 
 ---
 
+## Resources
+
+- **Django Documentation**: Official Django documentation for comprehensive guides and API references
+- **Real Python**: In-depth Python tutorials and articles for web development
+- **GeeksforGeeks**: Programming tutorials and coding examples for Django and Python
+- **qrcode and pillow libraries**: Python libraries for QR code generation and image processing
+
 **Built with using Django**
