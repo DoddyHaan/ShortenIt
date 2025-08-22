@@ -21,6 +21,7 @@
     <tr>
       <th>Short URL</th>
       <th>Created</th>
+      <th>Click Count</th>
       <th>Category</th>
       <th>Status</th>
       <th>QR Code</th>
@@ -32,6 +33,7 @@
     <tr>
       <td><a href="{% url 'short_url' url.short_url %}" target="_blank">{{ url.short_url }}</a></td>
       <td>{{ url.creation_date|date:"Y-m-d H:i" }}</td>
+      <td>{{ url.click_count }}</td>
       <td>{{ url.get_category_display }}</td>
       <td>
         {% if url.is_expired %}
